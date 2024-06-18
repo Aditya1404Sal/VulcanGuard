@@ -9,14 +9,14 @@ import (
 	"github.com/dropbox/goebpf"
 )
 
-func pkfilter_init() {
+func Pkfilter_init() {
 
 	// Specify Interface Name
 	interfaceName := "lo"
 	// IP BlockList
 	// Add the IPs you want to be blocked
 	ipList := []string{
-		"12.12.11.32",
+		"12.12.11.32", "47.54.11.19",
 	}
 
 	// Load XDP Into App
