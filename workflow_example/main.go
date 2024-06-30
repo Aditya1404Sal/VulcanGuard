@@ -34,7 +34,7 @@ func main() {
 }
 
 // intercepts every single request that the reverse proxy encounters and passes it through a basic ip filter and logs the ip-req combination
-// to prevent dos and just drop the request and block it
+// to prevent dos by dropping the request and block it
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	clientIP := r.RemoteAddr
 

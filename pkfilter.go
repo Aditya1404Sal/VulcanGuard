@@ -9,19 +9,15 @@ import (
 	"github.com/dropbox/goebpf"
 )
 
-func Pkfilter_init() {
+func Pkfilter_init(ipList []string) {
 
 	// Specify Interface Name
 	interfaceName := "lo"
 	// IP BlockList
-	// Add the IPs you want to be blocked
-	ipList := []string{
-		"12.12.11.32", "47.54.11.19",
-	}
 
 	// Load XDP Into App
 	bpf := goebpf.NewDefaultEbpfSystem()
-	err := bpf.LoadElf("PacketFilter/pkfilter.elf")
+	err := bpf.LoadElf("packetFilter/pkfilter.elf")
 	if err != nil {
 		log.Fatalf("LoadELF() failed: %s", err)
 	}

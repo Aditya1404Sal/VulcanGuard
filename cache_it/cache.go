@@ -5,9 +5,12 @@ import (
 	"time"
 )
 
+const DEFAULT_EXPIRATION_TIME = 20
+
 type CacheItem struct {
 	value      interface{}
 	expiration int64
+	count      int
 }
 
 type Cache struct {
@@ -40,6 +43,8 @@ func (c *Cache) Set(key string, value interface{}, expiration time.Duration) {
 	var exp int64
 	if expiration > 0 {
 		exp = time.Now().Add(expiration).UnixNano()
+	} else {
+		exp = time.Now().Add(DEFAULT_EXPIRATION_TIME).Unix()
 	}
 
 	c.mutex.Lock()
