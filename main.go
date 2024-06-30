@@ -3,7 +3,9 @@ package main
 import (
 	loadb "Suboptimal/Firewall/LoadB"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -50,6 +52,7 @@ func (rl *rateLimiter) increment(ip string) bool {
 
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
+		log.Printf("IP %s has been blacklisted", ip)
 		return false
 	}
 	return true
@@ -75,32 +78,47 @@ func (rl *rateLimiter) cleanUp() {
 }
 
 func transferIPList(blist map[string]bool, retList []string) {
-	for ip, _ := range blist {
+	for ip := range blist {
 		retList = append(retList, ip)
 	}
 }
 
 func main() {
-	// Empty ip list Which will get ip addresses appended to it based on rate limit.
+	// Initialize logging to file
+	logFile, err := os.OpenFile("suboptimal-Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		fmt.Printf("Error opening log file: %v\n", err)
+		return
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	// Log the start of the application
+	log.Println("suboptimal-Firewall started")
+
+	// Empty ip list which will get ip addresses appended to it based on rate limit.
 	go Pkfilter_init(ip_list)
 	rl := newRateLimiter()
 	servers := []loadb.Server{
-		loadb.NewServer("server url"),
+		loadb.NewServer("https://www.google.com/"),
 	}
 	lb := loadb.NewLoadbalancer("8080", servers)
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
-
 		clientIP := r.RemoteAddr
 
 		if !rl.increment(clientIP) {
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			log.Printf("Rate limit exceeded for IP: %s", clientIP)
+			return
 		}
 
 		transferIPList(rl.blackList, ip_list)
 
+		log.Printf("Redirecting request from IP: %s", clientIP)
 		lb.ServeProxy(w, r)
 	}
 	http.HandleFunc("/", handleRedirect)
+	log.Printf("Serving requests at localhost:%s", lb.Port)
 	fmt.Printf("serving requests at localhost:%s \n", lb.Port)
 	http.ListenAndServe(":"+lb.Port, nil)
 }
