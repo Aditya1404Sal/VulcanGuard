@@ -19,7 +19,6 @@ Significant further work is required to make suboptimal-Firewall a stable and re
 
 Note: This project is currently a parody and may evolve in the future.
 
-
 ## Features
 
 1. **Rate Limiter**:
@@ -31,9 +30,15 @@ Note: This project is currently a parody and may evolve in the future.
    - Operates at the lowest point in the network stack for minimal latency.
    - Customizable filtering rules to suit specific security needs.
 
-3. **Round Robin Based Load Balancer**:
-   - Distributes incoming traffic evenly across multiple servers.
-   - Ensures optimal resource utilization and enhances the performance and reliability of services.
+3. **Load Balancer**:
+   - **Round Robin Algorithm**:
+     - Distributes incoming traffic evenly across multiple servers.
+     - Ensures optimal resource utilization and enhances the performance and reliability of services.
+
+   - **Least Connection Algorithm**:
+     - Selects the server with the fewest active connections to distribute incoming traffic.
+     - Helps optimize server load balancing by directing requests to the least loaded server.
+     - Supports sticky sessions to maintain client-server affinity for HTTP sessions.
 
 ## Installation
 
