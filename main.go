@@ -85,7 +85,7 @@ func main() {
 	go Pkfilter_init(ip_list)
 	rl := newRateLimiter()
 	servers := []loadb.Server{
-		loadb.NewServer("server url"),
+		loadb.NewServer("https://www.reddit.com"),
 	}
 	lb := loadb.NewLoadbalancer("8080", servers)
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
