@@ -54,33 +54,36 @@ func (lb *Loadbalancer) GetLeastConnServer() Server {
 	return selected
 }
 
+// Feel free to Uncomment out the code below for static IP and Website traffic testing
+// It's Commented out for localhost based testing
+// It's a Temporary fix, solution is a WIP
 func (lb *Loadbalancer) ServeProxy(wr http.ResponseWriter, r *http.Request) {
-	sessionID := r.Header.Get("X-Session-ID")
+	//sessionID := r.Header.Get("X-Session-ID")
 	var targetServer Server
 
-	lb.mu.Lock()
-	if sessionID != "" {
-		targetServer = lb.SessionTable[sessionID]
+	//lb.mu.Lock()
+	// if sessionID != "" {
+	// 	targetServer = lb.SessionTable[sessionID]
+	// }
+	if lb.Algorithm == "leastconn" {
+		targetServer = lb.GetLeastConnServer()
+	} else if lb.Algorithm == "rr" {
+		targetServer = lb.GetNextAvailableServer()
 	}
-	if targetServer == nil {
-		if lb.Algorithm == "leastconn" {
-			targetServer = lb.GetLeastConnServer()
-		} else {
-			targetServer = lb.GetNextAvailableServer()
-		}
-		if sessionID != "" {
-			lb.SessionTable[sessionID] = targetServer
-		}
-	}
+	// 	// if sessionID != "" {
+	// 	// 	lb.SessionTable[sessionID] = targetServer
+	// 	// }
+	// }
+	//targetServer = lb.GetNextAvailableServer()
 	targetServer.IncActiveConn()
-	lb.mu.Unlock()
+	//lb.mu.Unlock()
 
 	fmt.Printf("forwarding requests to address %q\n", targetServer.Address())
 	targetServer.Serve(wr, r)
 
-	lb.mu.Lock()
-	targetServer.DecActiveConn()
-	lb.mu.Unlock()
+	// lb.mu.Lock()
+	// targetServer.DecActiveConn()
+	// lb.mu.Unlock()
 }
 
 type Server interface {

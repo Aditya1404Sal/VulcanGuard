@@ -12,8 +12,8 @@ import (
 
 var (
 	ip_list          []string
-	rateLimit        = 30
-	trackingDuration = 10 * time.Second
+	rateLimit        = 3
+	trackingDuration = 20 * time.Second
 )
 
 type rateLimiter struct {
@@ -95,15 +95,16 @@ func main() {
 
 	// Log the start of the application
 	log.Println("suboptimal-Firewall started")
-	ip_list = append(ip_list, "127.0.0.1")
+	//ip_list = append(ip_list, "127.0.0.1")
 	// Empty ip list which will get ip addresses appended to it based on rate limit.
 	go Pkfilter_init(ip_list)
 	rl := newRateLimiter()
 	servers := []loadb.Server{
+		loadb.NewServer("https://www.youtube.com/"),
 		loadb.NewServer("https://www.google.com/"),
 	}
 	// "" putting leastconn will turn the loadbalancer into a least connection type
-	lb := loadb.NewLoadbalancer("8080", servers, "")
+	lb := loadb.NewLoadbalancer("8080", servers, "rr")
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := r.RemoteAddr
 
