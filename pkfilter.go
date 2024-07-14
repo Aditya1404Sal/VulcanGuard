@@ -9,7 +9,13 @@ import (
 	"github.com/dropbox/goebpf"
 )
 
-func Pkfilter_init(ipList []string) {
+func Pkfilter_init(mapped_ip_list map[string]struct{}) {
+
+	ip_list := make([]string, 0, len(mapped_ip_list)) // Preallocate the slice with capacity
+
+	for key := range mapped_ip_list {
+		ip_list = append(ip_list, key)
+	}
 
 	// Specify Interface Name
 	interfaceName := "lo"
@@ -38,7 +44,7 @@ func Pkfilter_init(ipList []string) {
 		log.Fatalf("Error attaching to Interface: %s", err)
 	}
 
-	BlockIPAddress(ipList, blacklist)
+	BlockIPAddress(ip_list, blacklist)
 
 	defer xdp.Detach()
 	ctrlC := make(chan os.Signal, 1)
