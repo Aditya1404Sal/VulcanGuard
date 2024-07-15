@@ -9,7 +9,7 @@ import (
 	"github.com/dropbox/goebpf"
 )
 
-func PkfilterInit(blacklistCh chan string) {
+func PkfilterInit(blacklistCh, unblockCh chan string) {
 	// Specify Interface Name
 	interfaceName := "lo"
 
@@ -46,6 +46,15 @@ func PkfilterInit(blacklistCh chan string) {
 		}
 	}()
 
+	go func() {
+		for ip := range unblockCh {
+			err := UnblockIPAddress(ip, blacklist)
+			if err != nil {
+				log.Printf("Failed to block IP %s: %v", ip, err)
+			}
+		}
+	}()
+
 	defer xdp.Detach()
 	ctrlC := make(chan os.Signal, 1)
 	signal.Notify(ctrlC, os.Interrupt)
@@ -57,6 +66,14 @@ func PkfilterInit(blacklistCh chan string) {
 // The Function That adds the IPs to the blacklist map
 func BlockIPAddress(ip string, blacklist goebpf.Map) error {
 	err := blacklist.Insert(goebpf.CreateLPMtrieKey(ip), 1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UnblockIPAddress(ip string, blacklist goebpf.Map) error {
+	err := blacklist.Delete(goebpf.CreateLPMtrieKey(ip))
 	if err != nil {
 		return err
 	}
