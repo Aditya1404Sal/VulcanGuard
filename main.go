@@ -12,39 +12,42 @@ import (
 )
 
 var (
-	ip_list             map[string]struct{}
 	rateLimit           = 20
 	trackingDuration    = 20 * time.Second
 	brownListedDuration = 25 * time.Second
 )
 
 type rateLimiter struct {
-	requests  map[string][]time.Time
-	blackList map[string]bool
-	brownList map[string]time.Time
-	mu        sync.Mutex
+	requests    map[string][]time.Time
+	blackList   map[string]bool
+	brownList   map[string]time.Time
+	mu          sync.Mutex
+	blacklistCh chan string
+	unblockCh   chan string
 }
 
-func newRateLimiter() *rateLimiter {
+func newRateLimiter(blacklistCh chan string, unblockCh chan string) *rateLimiter {
 	rl := &rateLimiter{
-		requests:  make(map[string][]time.Time),
-		blackList: make(map[string]bool),
-		brownList: make(map[string]time.Time),
+		requests:    make(map[string][]time.Time),
+		blackList:   make(map[string]bool),
+		brownList:   make(map[string]time.Time),
+		blacklistCh: blacklistCh,
+		unblockCh:   unblockCh,
 	}
 	go rl.cleanUp()
 	return rl
 }
 
-func (rl *rateLimiter) sessionCheck(ip string) (bool, string) {
+func (rl *rateLimiter) sessionCheck(ip string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
 	if endTime, found := rl.brownList[ip]; found {
 		if time.Now().Before(endTime) {
-			return false, "You have been temporarily blacklisted, wait for 10 minutes before sending any requests"
+			return false
 		} else {
 			delete(rl.brownList, ip) // Remove from brown-list after duration expires
-			delete(ip_list, ip)
+			// No point in sending channel here , this needs an invocation which will not be bypassed by the firewall in the first place
 		}
 	}
 
@@ -64,10 +67,17 @@ func (rl *rateLimiter) sessionCheck(ip string) (bool, string) {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.brownList[ip] = now.Add(brownListedDuration)
 		log.Printf("IP %s has been brown-listed", ip)
-		return false, "Rate limit exceeded. Temporarily blacklisted for 10 minutes"
+		rl.blacklistCh <- ip
+		go startTimer(ip, rl.unblockCh, brownListedDuration)
+		return false
 	}
 
-	return true, ""
+	return true
+}
+
+func startTimer(ip string, unblockCh chan string, duration time.Duration) {
+	time.Sleep(duration)
+	unblockCh <- ip
 }
 
 func (rl *rateLimiter) limitCheck(ip string) bool {
@@ -94,6 +104,7 @@ func (rl *rateLimiter) limitCheck(ip string) bool {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
 		log.Printf("IP %s has been blacklisted", ip)
+		rl.blacklistCh <- ip
 		return false
 	}
 
@@ -119,12 +130,6 @@ func (rl *rateLimiter) cleanUp() {
 	}
 }
 
-func transferIPList(blist map[string]bool, retList map[string]struct{}) {
-	for ip := range blist {
-		retList[ip] = struct{}{}
-	}
-}
-
 func main() {
 	// Initialize logging to file
 	logFile, err := os.OpenFile("suboptimal-Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
@@ -137,23 +142,24 @@ func main() {
 
 	// Log the start of the application
 	log.Println("suboptimal-Firewall started")
-
-	go Pkfilter_init(ip_list)
-	rl := newRateLimiter()
+	unblockCh := make(chan string)
+	blacklistCh := make(chan string)
+	go PkfilterInit(blacklistCh, unblockCh)
+	rl := newRateLimiter(blacklistCh, unblockCh)
 	servers := []loadb.Server{
 		loadb.NewServer("https://www.youtube.com/"),
-		loadb.NewServer("https://www.google.com/"),
+		loadb.NewServer("http://localhost:8080"),
 	}
-	lb := loadb.NewLoadbalancer("8080", servers, "rr")
+	lb := loadb.NewLoadbalancer("8090", servers, "rr")
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
 		// Sticky http sessions have a Session-ID Header
 		// IP gets Brownlisted : Temporarily blocked
 		if sessionID := r.Header.Get("Session-ID"); sessionID != "" {
-			ok, message := rl.sessionCheck(clientIP)
+			ok := rl.sessionCheck(clientIP)
 			if !ok {
-				http.Error(w, message, http.StatusTooManyRequests)
+				http.Error(w, "Session Rate Limit exceeded", http.StatusTooManyRequests)
 				log.Printf("Session limit exceeded for IP: %s", clientIP)
 				return
 			}
@@ -164,7 +170,6 @@ func main() {
 				return
 			}
 		}
-		transferIPList(rl.blackList, ip_list)
 
 		log.Printf("Redirecting request from IP: %s", clientIP)
 		lb.ServeProxy(w, r)
