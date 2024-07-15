@@ -15,7 +15,7 @@ var (
 	ip_list             map[string]struct{}
 	rateLimit           = 20
 	trackingDuration    = 20 * time.Second
-	brownListedDuration = 10 * time.Minute
+	brownListedDuration = 25 * time.Second
 )
 
 type rateLimiter struct {
@@ -148,7 +148,8 @@ func main() {
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
-
+		// Sticky http sessions have a Session-ID Header
+		// IP gets Brownlisted : Temporarily blocked
 		if sessionID := r.Header.Get("Session-ID"); sessionID != "" {
 			ok, message := rl.sessionCheck(clientIP)
 			if !ok {
