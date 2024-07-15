@@ -85,3 +85,33 @@
 2024/07/09 00:14:22 Rate limit exceeded for IP: [::1]:43148
 2024/07/09 00:14:22 Rate limit exceeded for IP: [::1]:43148
 2024/07/09 00:14:22 Rate limit exceeded for IP: [::1]:43148
+2024/07/15 19:21:50 suboptimal-Firewall started
+2024/07/15 19:21:50 Serving requests at localhost:8080
+2024/07/15 19:21:50 XDP Program Loaded successfully into the Kernel.
+2024/07/15 19:21:50 Press CTRL+C to stop.
+2024/07/15 19:22:53 suboptimal-Firewall started
+2024/07/15 19:22:53 Serving requests at localhost:8090
+2024/07/15 19:22:53 XDP Program Loaded successfully into the Kernel.
+2024/07/15 19:22:53 Press CTRL+C to stop.
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:53 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:54 Redirecting request from IP: 127.0.0.1
+2024/07/15 19:24:54 IP 127.0.0.1 has been blacklisted
+2024/07/15 19:24:54 Rate limit exceeded for IP: 127.0.0.1

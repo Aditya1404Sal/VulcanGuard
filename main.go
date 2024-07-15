@@ -12,24 +12,25 @@ import (
 )
 
 var (
-	ip_list             map[string]struct{}
 	rateLimit           = 20
 	trackingDuration    = 20 * time.Second
 	brownListedDuration = 25 * time.Second
 )
 
 type rateLimiter struct {
-	requests  map[string][]time.Time
-	blackList map[string]bool
-	brownList map[string]time.Time
-	mu        sync.Mutex
+	requests    map[string][]time.Time
+	blackList   map[string]bool
+	brownList   map[string]time.Time
+	mu          sync.Mutex
+	blacklistCh chan string
 }
 
-func newRateLimiter() *rateLimiter {
+func newRateLimiter(blacklistCh chan string) *rateLimiter {
 	rl := &rateLimiter{
-		requests:  make(map[string][]time.Time),
-		blackList: make(map[string]bool),
-		brownList: make(map[string]time.Time),
+		requests:    make(map[string][]time.Time),
+		blackList:   make(map[string]bool),
+		brownList:   make(map[string]time.Time),
+		blacklistCh: blacklistCh,
 	}
 	go rl.cleanUp()
 	return rl
@@ -44,7 +45,6 @@ func (rl *rateLimiter) sessionCheck(ip string) (bool, string) {
 			return false, "You have been temporarily blacklisted, wait for 10 minutes before sending any requests"
 		} else {
 			delete(rl.brownList, ip) // Remove from brown-list after duration expires
-			delete(ip_list, ip)
 		}
 	}
 
@@ -94,6 +94,7 @@ func (rl *rateLimiter) limitCheck(ip string) bool {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
 		log.Printf("IP %s has been blacklisted", ip)
+		rl.blacklistCh <- ip
 		return false
 	}
 
@@ -119,12 +120,6 @@ func (rl *rateLimiter) cleanUp() {
 	}
 }
 
-func transferIPList(blist map[string]bool, retList map[string]struct{}) {
-	for ip := range blist {
-		retList[ip] = struct{}{}
-	}
-}
-
 func main() {
 	// Initialize logging to file
 	logFile, err := os.OpenFile("suboptimal-Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
@@ -138,13 +133,14 @@ func main() {
 	// Log the start of the application
 	log.Println("suboptimal-Firewall started")
 
-	go Pkfilter_init(ip_list)
-	rl := newRateLimiter()
+	blacklistCh := make(chan string)
+	go PkfilterInit(blacklistCh)
+	rl := newRateLimiter(blacklistCh)
 	servers := []loadb.Server{
 		loadb.NewServer("https://www.youtube.com/"),
-		loadb.NewServer("https://www.google.com/"),
+		loadb.NewServer("http://localhost:8080"),
 	}
-	lb := loadb.NewLoadbalancer("8080", servers, "rr")
+	lb := loadb.NewLoadbalancer("8090", servers, "rr")
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
@@ -164,7 +160,6 @@ func main() {
 				return
 			}
 		}
-		transferIPList(rl.blackList, ip_list)
 
 		log.Printf("Redirecting request from IP: %s", clientIP)
 		lb.ServeProxy(w, r)
