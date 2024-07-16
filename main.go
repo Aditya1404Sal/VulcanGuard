@@ -150,7 +150,7 @@ func main() {
 		loadb.NewServer("https://www.youtube.com/"),
 		loadb.NewServer("http://localhost:8080"),
 	}
-	lb := loadb.NewLoadbalancer("8090", servers, "rr")
+	lb := loadb.NewLoadbalancer("8090", servers, "lc")
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
