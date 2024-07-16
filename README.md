@@ -2,12 +2,12 @@
 
 ## Overview
 
-**Suboptimal-Firewall** is a comprehensive network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a round-robin based load balancer to provide a decent working firewall solution :D.
+**Suboptimal-Firewall** is a comprehensive network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
 
 # ⚠️ Disclaimer ⚠️
 WARNING: suboptimal-Firewall is Heavily Underdeveloped
 
-This project is currently a **parody** and is **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes (for now). The current version lacks extensive testing and development, which could lead to security vulnerabilities, performance issues, and other critical problems on.
+This project is currently a **parody** and is **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes (for now). The current version lacks extensive testing, which could lead to security vulnerabilities, performance issues, and other critical problems on.
 
 Use at Your Own Risk
 
@@ -15,7 +15,7 @@ The creator of this tool will not be held liable for any damages or negative out
 
 Future Development Needed
 
-Significant further work is required to make suboptimal-Firewall a stable and reliable tool. Contributions and feedback are welcome to help improve its functionality and security.
+Further work is required to make suboptimal-Firewall a stable and reliable tool. Contributions and feedback are welcome to help improve its functionality and security.
 
 Note: This project is currently a parody and may evolve in the future.
 
@@ -24,6 +24,7 @@ Note: This project is currently a parody and may evolve in the future.
 1. **Rate Limiter**:
    - Controls the rate of incoming traffic to prevent overwhelming the network.
    - Protects against DDoS attacks and ensures fair usage of network resources.
+   - Supports sticky HTTP session brownlisting: If a valid request with a session ID exceeds a pseudo rate of X requests in Y seconds, the source IP will be temporarily brownlisted (denied service for 10 minutes).
 
 2. **eBPF-based XDP Packet Filter**:
    - Utilizes eBPF (Extended Berkeley Packet Filter) for high-performance packet filtering.
