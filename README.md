@@ -116,4 +116,9 @@ I welcome contributions to improve suboptimal-Firewall. Please follow these step
 4. Push to the branch: `git push origin feature-branch`.
 5. Open a pull request.
 
+## Credits
+
+The eBPF-based XDP Packet Filter implementation in this project is inspired by the article ["Simple XDP Firewall with Golang"](https://dev.to/xenbytes/simple-xdp-firewall-with-golang-1da3) by Hasan Behbahani. This article provided a solid foundation upon which I built the dynamic channel-based IP management system, enabling real-time IP blacklisting and automatic unblocking of temporarily blocked IPs.
+
+
 ---
