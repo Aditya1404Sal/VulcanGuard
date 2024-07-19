@@ -2,29 +2,14 @@
 
 ## Overview
 
-**Suboptimal-Firewall** is a comprehensive network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
-
-# ⚠️ Disclaimer ⚠️
-WARNING: suboptimal-Firewall is Heavily Underdeveloped
-
-This project is currently a **parody** and is **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes (for now). The current version lacks extensive testing, which could lead to security vulnerabilities, performance issues, and other critical problems on.
-
-Use at Your Own Risk
-
-The creator of this tool will not be held liable for any damages or negative outcomes resulting from its use. By using this tool, you acknowledge the potential risks and agree that the responsibility for any issues lies solely with you.
-
-Future Development Needed
-
-Further work is required to make suboptimal-Firewall a stable and reliable tool. Contributions and feedback are welcome to help improve its functionality and security.
-
-Note: This project is currently a parody and may evolve in the future.
+**Suboptimal-Firewall** is a network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
 
 ## Features
 
 1. **Rate Limiter**:
    - Controls the rate of incoming traffic to prevent overwhelming the network.
    - Protects against DDoS attacks and ensures fair usage of network resources.
-   - Supports sticky HTTP session brownlisting: If a valid request with a session ID exceeds a pseudo rate of X requests in Y seconds, the source IP will be temporarily brownlisted (denied service for 10 minutes).
+   - Supports sticky HTTP session brownlisting: If a valid request with a session ID exceeds a pseudo rate of X requests in Y seconds, the source IP will be temporarily brownlisted (ie: denied service for a set Duration).
 
 2. **eBPF-based XDP Packet Filter**:
    - Utilizes eBPF (Extended Berkeley Packet Filter) for high-performance packet filtering.
@@ -47,8 +32,8 @@ Note: This project is currently a parody and may evolve in the future.
 
 - Linux operating system with kernel version 4.14 or higher.
 - `libbpf` library installed.
-- GCC or Clang compiler.
-- Go version 1.22.0 or higher
+- `GCC` or `Clang` compiler.
+- `Go` version `1.22.0` or higher
 
 ### Steps
 
@@ -71,7 +56,7 @@ Note: This project is currently a parody and may evolve in the future.
 ## Configuration
 
 Add a list of backend servers or URLs for Loadbalancing in 
-[https://github.com/Aditya1404Sal/Suboptimal-firewall/blob/6336a34363dd23fe10c6f9a3aa0cedbd51a6c73a/main.go#L88]
+https://github.com/Aditya1404Sal/Suboptimal-firewall/blob/6336a34363dd23fe10c6f9a3aa0cedbd51a6c73a/main.go#L88
 
 ```conf
 [LoadBalancer]
@@ -80,7 +65,7 @@ server_list = server1, server2, server3
 
 ### eBPF-based XDP Packet Filter
 
-Modify the eBPF filtering rules in the `packetFilter/pkfilter.c` file:
+Modify the eBPF filtering rules in the `packetFilter/pkfilter.c` file according to your usage (Optional) :
 ```c
 SEC("xdp")
 int xdp_filter(struct xdp_md *ctx) {
@@ -105,6 +90,18 @@ Logs are stored in the root `/` directory. Monitor the firewall status and perfo
 ```sh
 tail -f suboptimal-Firewall.log
 ```
+# ⚠️ Disclaimer ⚠️
+WARNING: suboptimal-Firewall is Underdeveloped
+
+This project is currently a **parody** and is **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes (for now). The current version lacks extensive testing, which can lead to security vulnerabilities, performance issues, and other critical problems.
+
+Use at Your Own Risk
+
+The creator of this tool will not be held liable for any damages or negative outcomes resulting from its use. By using this tool, you acknowledge the potential risks and agree that the responsibility for any issues lies solely with you.
+
+Future Development Needed
+
+Further work is required to make this project a stable and reliable tool. Contributions and feedback are warmly welcomed to help improve its functionality and security.
 
 ## Contributing
 
