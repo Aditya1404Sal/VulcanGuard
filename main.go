@@ -50,7 +50,6 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 			return false
 		} else {
 			delete(rl.brownList, ip) // Remove from brown-list after duration expires
-			// No point in sending channel here , this needs an invocation which will not be bypassed by the firewall in the first place
 		}
 	}
 
@@ -151,7 +150,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
+	// The two channels responsible for communicating the status of IP addresses to the packet filter in real time
 	unblockCh := make(chan string)
 	blacklistCh := make(chan string)
 
@@ -205,7 +204,9 @@ func main() {
 		serverErrors <- http.ListenAndServe(":"+lb.Port, nil)
 	}()
 
-	// Wait for shutdown signal or server error
+	// Wait for shutdown signal or server error, because main will be blocked due to nature of select
+	// until the interrupt signal will notify sigCh
+	// after which, even if an error occurs...cancel will place every goroutine associated with ctx on the kill queue
 	select {
 	case <-sigCh:
 		fmt.Println("\nReceived shutdown signal. Stopping...")
@@ -213,10 +214,11 @@ func main() {
 		fmt.Printf("Server error: %v\n", err)
 	}
 
-	// Cancel the context to signal all goroutines to stop
+	// Cancel the context to signal all goroutines to stop, which will start from bottom of the tree ie ctx.Done()
 	cancel()
 
-	// Wait for PkfilterInit to finish
+	// Wait for PkfilterInit to finish, Finished signal will be sent once wg.Done() is emmited.
+	// Since ctx is passed into PKfilter_Init, XDP will detach and then program can be safely terminated.
 	wg.Wait()
 
 	fmt.Println("All operations stopped. Goodbye! 😭👋")
