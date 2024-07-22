@@ -67,6 +67,7 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.brownList[ip] = now.Add(brownListedDuration)
 		log.Printf("IP %s has been brown-listed", ip)
+		fmt.Printf("IP %s has been brown-listed", ip)
 		rl.blacklistCh <- ip
 		go startTimer(ip, rl.unblockCh, brownListedDuration)
 		return false
@@ -104,6 +105,7 @@ func (rl *rateLimiter) limitCheck(ip string) bool {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
 		log.Printf("IP %s has been blacklisted", ip)
+		fmt.Printf("IP %s has been blacklisted", ip)
 		rl.blacklistCh <- ip
 		return false
 	}
@@ -141,16 +143,16 @@ func main() {
 	log.SetOutput(logFile)
 
 	// Log the start of the application
-	log.Println("suboptimal-Firewall started")
+	log.Println("Firewall Activated")
 	unblockCh := make(chan string)
 	blacklistCh := make(chan string)
 	go PkfilterInit(blacklistCh, unblockCh)
 	rl := newRateLimiter(blacklistCh, unblockCh)
 	servers := []loadb.Server{
 		loadb.NewServer("https://www.youtube.com/"),
-		loadb.NewServer("http://localhost:8080"),
+		loadb.NewServer("http://localhost:8000"),
 	}
-	lb := loadb.NewLoadbalancer("8090", servers, "lc")
+	lb := loadb.NewLoadbalancer("8080", servers, "lc")
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]

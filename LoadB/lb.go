@@ -1,7 +1,7 @@
 package loadb
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -75,7 +75,7 @@ func (lb *Loadbalancer) ServeProxy(wr http.ResponseWriter, r *http.Request) {
 	}
 	targetServer.IncActiveConn()
 
-	fmt.Printf("forwarding requests to address %q\n", targetServer.Address())
+	log.Printf("forwarding requests to address %q\n", targetServer.Address())
 	targetServer.Serve(wr, r)
 
 	// lb.mu.Lock()
