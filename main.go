@@ -69,8 +69,8 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 
 	if len(rl.requests[ip]) > rateLimit {
 		rl.brownList[ip] = now.Add(brownListedDuration)
-		log.Printf("IP %s has been brown-listed", ip)
-		fmt.Printf("IP %s has been brown-listed", ip)
+		log.Printf("IP %s has been brown-listed 🚫", ip)
+		fmt.Printf("IP %s has been brown-listed 🚫", ip)
 		rl.blacklistCh <- ip
 		go startTimer(ip, rl.unblockCh, brownListedDuration)
 		return false
@@ -81,6 +81,7 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 
 func startTimer(ip string, unblockCh chan string, duration time.Duration) {
 	time.Sleep(duration)
+	log.Printf("Access to IP %s has been Granted ✅", ip)
 	unblockCh <- ip
 }
 
@@ -107,8 +108,8 @@ func (rl *rateLimiter) limitCheck(ip string) bool {
 
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
-		log.Printf("IP %s has been blacklisted", ip)
-		fmt.Printf("IP %s has been blacklisted", ip)
+		log.Printf("IP %s has been blacklisted ❗❌❗", ip)
+		fmt.Printf("IP %s has been blacklisted ❗❌❗", ip)
 		rl.blacklistCh <- ip
 		return false
 	}
@@ -137,7 +138,7 @@ func (rl *rateLimiter) cleanUp() {
 
 func main() {
 	// Initialize logging to file
-	logFile, err := os.OpenFile("suboptimal-Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	logFile, err := os.OpenFile("Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Printf("Error opening log file: %v\n", err)
 		return
@@ -146,7 +147,7 @@ func main() {
 	log.SetOutput(logFile)
 
 	// Log the start of the application
-	log.Println("\nFirewall Activated")
+	log.Println("\nFirewall Activated 🛡")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -165,7 +166,7 @@ func main() {
 	servers := []loadb.Server{
 		loadb.NewServer("https://www.youtube.com/"),
 		loadb.NewServer("https://wasmcloud.com/"),
-		loadb.NewServer("https://x.com/home"),
+		loadb.NewServer("https://x.com/"),
 	}
 	lb := loadb.NewLoadbalancer("8080", servers, "lc")
 
@@ -218,5 +219,5 @@ func main() {
 	// Wait for PkfilterInit to finish
 	wg.Wait()
 
-	fmt.Println("All operations stopped. Exiting.")
+	fmt.Println("All operations stopped. Goodbye! 😭👋")
 }

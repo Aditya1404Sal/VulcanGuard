@@ -53,15 +53,16 @@
    sudo ./Firewall
    ```
 
+4. Stopping The firewall:
+   ```sh
+   Ctrl+C
+   ```
+
 ## Configuration
 
 Add a list of backend servers or URLs for Loadbalancing in 
 https://github.com/Aditya1404Sal/Suboptimal-firewall/blob/6336a34363dd23fe10c6f9a3aa0cedbd51a6c73a/main.go#L88
 
-```conf
-[LoadBalancer]
-server_list = server1, server2, server3
-```
 
 ### eBPF-based XDP Packet Filter
 
@@ -88,7 +89,7 @@ sudo ./Firewall
 
 Logs are stored in the root `/` directory. Monitor the firewall status and performance:
 ```sh
-tail -f suboptimal-Firewall.log
+tail -f Firewall.log
 ```
 # ⚠️ Disclaimer ⚠️
 WARNING: suboptimal-Firewall is Underdeveloped
