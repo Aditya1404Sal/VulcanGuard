@@ -1,15 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 
 	"github.com/dropbox/goebpf"
 )
 
-func PkfilterInit(blacklistCh, unblockCh chan string) {
+func PkfilterInit(ctx context.Context, blacklistCh, unblockCh chan string) {
 	// Specify Interface Name
 	interfaceName := "lo"
 
@@ -36,31 +35,52 @@ func PkfilterInit(blacklistCh, unblockCh chan string) {
 		log.Fatalf("Error attaching to Interface: %s", err)
 	}
 
+	//Ensure xdp.Detach() is called when the function exits
+	defer func() {
+		log.Println("\nDetaching XDP program...")
+		err := xdp.Detach()
+		if err != nil {
+			log.Printf("\nError detaching XDP program: %v", err)
+		} else {
+			log.Println("\nXDP program successfully detached")
+		}
+	}()
+
 	// Listen for new blacklisted IPs
 	go func() {
-		for ip := range blacklistCh {
-			err := BlockIPAddress(ip, blacklist)
-			if err != nil {
-				log.Printf("Failed to block IP %s: %v", ip, err)
+		for {
+			select {
+			case ip := <-blacklistCh:
+				err := BlockIPAddress(ip, blacklist)
+				if err != nil {
+					log.Printf("Failed to block IP %s: %v", ip, err)
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
 
 	go func() {
-		for ip := range unblockCh {
-			err := UnblockIPAddress(ip, blacklist)
-			if err != nil {
-				log.Printf("Failed to block IP %s: %v", ip, err)
+		for {
+			select {
+			case ip := <-unblockCh:
+				err := UnblockIPAddress(ip, blacklist)
+				if err != nil {
+					log.Printf("Failed to unblock IP %s: %v", ip, err)
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
 
-	defer xdp.Detach()
-	ctrlC := make(chan os.Signal, 1)
-	signal.Notify(ctrlC, os.Interrupt)
 	log.Println("XDP Program Loaded successfully into the Kernel.")
 	log.Println("Press CTRL+C to stop.")
-	<-ctrlC
+
+	// Wait for context cancellation
+	<-ctx.Done()
+	log.Println("Received signal to stop. Preparing to detach XDP program...")
 }
 
 // The Function That adds the IPs to the blacklist map

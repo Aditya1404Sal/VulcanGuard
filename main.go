@@ -2,12 +2,15 @@ package main
 
 import (
 	loadb "Suboptimal/Firewall/LoadB"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -143,21 +146,31 @@ func main() {
 	log.SetOutput(logFile)
 
 	// Log the start of the application
-	log.Println("Firewall Activated")
+	log.Println("\nFirewall Activated")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	unblockCh := make(chan string)
 	blacklistCh := make(chan string)
-	go PkfilterInit(blacklistCh, unblockCh)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		PkfilterInit(ctx, blacklistCh, unblockCh)
+	}()
+
 	rl := newRateLimiter(blacklistCh, unblockCh)
 	servers := []loadb.Server{
 		loadb.NewServer("https://www.youtube.com/"),
-		loadb.NewServer("http://localhost:8000"),
+		loadb.NewServer("https://wasmcloud.com/"),
+		loadb.NewServer("https://x.com/home"),
 	}
 	lb := loadb.NewLoadbalancer("8080", servers, "lc")
 
 	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
-		// Sticky http sessions have a Session-ID Header
-		// IP gets Brownlisted : Temporarily blocked
 		if sessionID := r.Header.Get("Session-ID"); sessionID != "" {
 			ok := rl.sessionCheck(clientIP)
 			if !ok {
@@ -178,7 +191,32 @@ func main() {
 	}
 
 	http.HandleFunc("/", handleRedirect)
-	log.Printf("Serving requests at localhost:%s", lb.Port)
-	fmt.Printf("serving requests at localhost:%s \n", lb.Port)
-	http.ListenAndServe(":"+lb.Port, nil)
+
+	// Set up signal handling
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	// Start the HTTP server in a goroutine
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Printf("Serving requests at localhost:%s", lb.Port)
+		fmt.Printf("Serving requests at localhost:%s\n", lb.Port)
+		serverErrors <- http.ListenAndServe(":"+lb.Port, nil)
+	}()
+
+	// Wait for shutdown signal or server error
+	select {
+	case <-sigCh:
+		fmt.Println("\nReceived shutdown signal. Stopping...")
+	case err := <-serverErrors:
+		fmt.Printf("Server error: %v\n", err)
+	}
+
+	// Cancel the context to signal all goroutines to stop
+	cancel()
+
+	// Wait for PkfilterInit to finish
+	wg.Wait()
+
+	fmt.Println("All operations stopped. Exiting.")
 }
