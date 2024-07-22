@@ -104,9 +104,19 @@ func NewServer(addr string) *SimpleServer {
 	if err != nil {
 		panic(err)
 	}
+	proxy := httputil.NewSingleHostReverseProxy(serverUrl)
+	originalDirector := proxy.Director
+	proxy.Director = func(req *http.Request) {
+		originalDirector(req)
+
+		for key, values := range req.Header {
+			req.Header[key] = values
+		}
+		req.Host = serverUrl.Host
+	}
 	return &SimpleServer{
 		addr:  addr,
-		proxy: *httputil.NewSingleHostReverseProxy(serverUrl),
+		proxy: *proxy,
 	}
 }
 

@@ -40,9 +40,11 @@ func PkfilterInit(ctx context.Context, blacklistCh, unblockCh chan string) {
 		log.Println("\nDetaching XDP program...")
 		err := xdp.Detach()
 		if err != nil {
-			log.Printf("\nError detaching XDP program: %v", err)
+			log.Printf("\nError detaching XDP program: %v 😨", err)
+			fmt.Printf("\nError detaching XDP program: %v 😨", err)
 		} else {
-			log.Println("\nXDP program successfully detached")
+			log.Println("\nXDP program successfully detached 😌")
+			fmt.Println("\nXDP program successfully detached 😌")
 		}
 	}()
 
@@ -53,7 +55,7 @@ func PkfilterInit(ctx context.Context, blacklistCh, unblockCh chan string) {
 			case ip := <-blacklistCh:
 				err := BlockIPAddress(ip, blacklist)
 				if err != nil {
-					log.Printf("Failed to block IP %s: %v", ip, err)
+					log.Printf("Failed to block IP %s: %v 💀", ip, err)
 				}
 			case <-ctx.Done():
 				return
@@ -67,7 +69,7 @@ func PkfilterInit(ctx context.Context, blacklistCh, unblockCh chan string) {
 			case ip := <-unblockCh:
 				err := UnblockIPAddress(ip, blacklist)
 				if err != nil {
-					log.Printf("Failed to unblock IP %s: %v", ip, err)
+					log.Printf("Failed to unblock IP %s: %v 💀", ip, err)
 				}
 			case <-ctx.Done():
 				return
