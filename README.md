@@ -66,7 +66,7 @@ https://github.com/Aditya1404Sal/Suboptimal-firewall/blob/6336a34363dd23fe10c6f9
 
 ### eBPF-based XDP Packet Filter
 
-Modify the eBPF filtering rules in the `packetFilter/pkfilter.c` file according to your usage (Optional) :
+Modify the eBPF filtering rules in `PacketFilter/pkfilter.c` file according to your usage (Optional) :
 ```c
 SEC("xdp")
 int xdp_filter(struct xdp_md *ctx) {

@@ -14,7 +14,7 @@ func PkfilterInit(ctx context.Context, blacklistCh, unblockCh chan string) {
 
 	// Load XDP Into App
 	bpf := goebpf.NewDefaultEbpfSystem()
-	err := bpf.LoadElf("packetFilter/pkfilter.elf")
+	err := bpf.LoadElf("PacketFilter/pkfilter.elf")
 	if err != nil {
 		log.Fatalf("LoadELF() failed: %s", err)
 	}
