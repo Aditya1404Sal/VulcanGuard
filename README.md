@@ -4,6 +4,11 @@
 
 **Suboptimal-Firewall** is a network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
 
+This Firewall is a month old so it's comparable to either one of these
+
+![Screenshot from 2024-07-23 17-33-42](https://github.com/user-attachments/assets/7d8c20f5-3f26-4df1-94e3-fd9a4e91f80c)
+
+
 ## Features
 
 1. **Rate Limiter**:
