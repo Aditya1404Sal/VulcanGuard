@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	rateLimit           = 20
+	rateLimit           = 200
 	trackingDuration    = 20 * time.Second
 	brownListedDuration = 25 * time.Second
 )
@@ -69,7 +69,7 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 	if len(rl.requests[ip]) > rateLimit {
 		rl.brownList[ip] = now.Add(brownListedDuration)
 		log.Printf("IP %s has been brown-listed 🚫", ip)
-		fmt.Printf("IP %s has been brown-listed 🚫", ip)
+		fmt.Printf("\nIP %s has been brown-listed 🚫", ip)
 		rl.blacklistCh <- ip
 		go startTimer(ip, rl.unblockCh, brownListedDuration)
 		return false
@@ -81,6 +81,7 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 func startTimer(ip string, unblockCh chan string, duration time.Duration) {
 	time.Sleep(duration)
 	log.Printf("Access to IP %s has been Granted ✅", ip)
+	fmt.Printf("\nAccess to IP %s has been Granted ✅", ip)
 	unblockCh <- ip
 }
 
