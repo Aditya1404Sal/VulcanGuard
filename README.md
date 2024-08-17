@@ -31,6 +31,10 @@ This Firewall is a month old so it's comparable to either one of these
      - Helps optimize server load balancing by directing requests to the least loaded server.
      - Supports sticky sessions to maintain client-server affinity for HTTP sessions.
 
+4. **IP Tracking and Analysis**:
+
+   - Enhanced Security through IP Intelligence: By integrating with the https://ip-api.com/ service, we query blacklisted IP addresses in    real-time, allowing us to identify the geographical origin and additional context of incoming requests. This data enables more informed security decisions, enhancing our ability to detect and respond to potential threats.
+   - Automated Data Logging: The queried IP information is automatically stored as a JSON file, which includes detailed metadata and a timestamp marking the moment of blacklisting. This log serves as a valuable resource for forensic analysis, auditing, and future threat mitigation, ensuring that security events are well-documented and traceable.
 ## Installation
 
 ### Prerequisites
