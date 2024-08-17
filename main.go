@@ -4,6 +4,7 @@ import (
 	loadb "Suboptimal/Firewall/LoadB"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,7 @@ import (
 )
 
 var (
-	rateLimit           = 200
+	rateLimit           = 20
 	trackingDuration    = 20 * time.Second
 	brownListedDuration = 25 * time.Second
 )
@@ -71,6 +72,7 @@ func (rl *rateLimiter) sessionCheck(ip string) bool {
 		log.Printf("IP %s has been brown-listed 🚫", ip)
 		fmt.Printf("\nIP %s has been brown-listed 🚫", ip)
 		rl.blacklistCh <- ip
+		create_ip_info_json(ip)
 		go startTimer(ip, rl.unblockCh, brownListedDuration)
 		return false
 	}
@@ -108,6 +110,7 @@ func (rl *rateLimiter) limitCheck(ip string) bool {
 
 	if len(rl.requests[ip]) > rateLimit {
 		rl.blackList[ip] = true
+		create_ip_info_json(ip)
 		log.Printf("IP %s has been blacklisted ❗❌❗", ip)
 		fmt.Printf("IP %s has been blacklisted ❗❌❗", ip)
 		rl.blacklistCh <- ip
@@ -136,8 +139,33 @@ func (rl *rateLimiter) cleanUp() {
 	}
 }
 
+func create_ip_info_json(ip string) {
+	url := fmt.Sprintf("http://ip-api.com/json/%s", ip)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Println("Could not retrieve any ip information")
+		return
+	}
+	defer resp.Body.Close()
+	currTime := time.Now()
+	layout := "2006-01-02_15-04-05"
+	formattedTime := currTime.Format(layout)
+	filename := fmt.Sprintf("./ip_info/results-%s.json", formattedTime)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Println("Error creating new IP info file")
+		return
+	}
+	defer file.Close()
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		log.Println("Failed to Save data to json file")
+	}
+}
+
 func main() {
 	// Initialize logging to file
+	os.Mkdir("./ip_info", 0755)
 	logFile, err := os.OpenFile("Firewall.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Printf("Error opening log file: %v\n", err)
