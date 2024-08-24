@@ -56,13 +56,27 @@ This Firewall is a month old so it's comparable to either one of these
    ```sh
    go build 
    ```
+3. Add the binary to the global scope
 
-3. Run the firewall:
+```bash
+#If using zsh
+nano ~/.zshrc
+#if using bash
+nano ~/.bashrc
+```
+
+and add the path to the binary using
+
+```bash
+export PATH="$PATH:/complete_path_to_cloned_repo/Suboptimal-firewall"
+```
+
+4. Run the firewall:
    ```sh
-   sudo ./Firewall
+   sudo Firewall
    ```
 
-4. Stopping The firewall:
+5. Stopping The firewall:
    ```sh
    Ctrl+C
    ```
@@ -91,7 +105,7 @@ int xdp_filter(struct xdp_md *ctx) {
 
 To start the firewall with default settings:
 ```sh
-sudo ./Firewall
+sudo Firewall
 ```
 
 ### Logs and Monitoring
