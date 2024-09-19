@@ -1,13 +1,8 @@
-# Suboptimal-Firewall
+# Vulcan-Guard
 
 ## Overview
 
-**Suboptimal-Firewall** is a network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
-
-This Firewall is a month old so it's comparable to either one of these
-
-![Screenshot from 2024-07-23 17-33-42](https://github.com/user-attachments/assets/7d8c20f5-3f26-4df1-94e3-fd9a4e91f80c)
-
+**Vulcan Guard** is a network management tool designed to test network security and performance. It combines a rate limiter, an eBPF-based XDP (Express Data Path) packet filter, and a load balancer with multiple algorithm support to provide a working firewall solution :D.
 
 ## Features
 
@@ -115,9 +110,9 @@ Logs are stored in the root `/` directory. Monitor the firewall status and perfo
 tail -f Firewall.log
 ```
 # ⚠️ Disclaimer ⚠️
-WARNING: suboptimal-Firewall is Underdeveloped
+WARNING: Vulcan-Guard is Underdeveloped
 
-This project is currently a **parody** and is **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes (for now). The current version lacks extensive testing, which can lead to security vulnerabilities, performance issues, and other critical problems.
+This project is currently  **NOT SUITABLE** for production environments. It is intended purely for learning and educational purposes . The current version lacks extensive testing, which can lead to security vulnerabilities, performance issues, and other critical problems.
 
 Use at Your Own Risk
 
