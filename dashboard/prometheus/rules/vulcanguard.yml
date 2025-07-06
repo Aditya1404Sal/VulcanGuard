@@ -1,0 +1,62 @@
+groups:
+  - name: vulcanguard.rules
+    rules:
+      # High request rate alert
+      - alert: HighRequestRate
+        expr: rate(vulcanguard_requests_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request rate detected"
+          description: "Request rate is {{ $value }} requests/sec, which is above threshold"
+
+      # DDoS attack detection
+      - alert: PossibleDDoSAttack
+        expr: rate(vulcanguard_blocked_requests_total[1m]) > 50
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Possible DDoS attack detected"
+          description: "Blocking {{ $value }} requests/sec from suspicious sources"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(vulcanguard_errors_total[5m]) / rate(vulcanguard_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      # Suspicious geolocation activity
+      - alert: SuspiciousGeoActivity
+        expr: vulcanguard_geo_requests_by_country > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusual geographic activity"
+          description: "High request volume from {{ $labels.country }}: {{ $value }} requests"
+
+      # Behavioral profiler alerts
+      - alert: BehavioralAnomalyDetected
+        expr: vulcanguard_behavioral_anomalies_total > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Behavioral anomalies detected"
+          description: "{{ $value }} behavioral anomalies detected in the last period"
+
+      # P2P network health
+      - alert: P2PNetworkUnhealthy
+        expr: vulcanguard_p2p_active_peers < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P2P network has few active peers"
+          description: "Only {{ $value }} active peers in P2P network"

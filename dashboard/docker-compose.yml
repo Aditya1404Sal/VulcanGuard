@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vulcanguard-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vulcanguard-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=vulcanguard123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # InfluxDB for time-series geolocation data
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: vulcanguard-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=vulcanguard
+      - DOCKER_INFLUXDB_INIT_PASSWORD=vulcanguard123
+      - DOCKER_INFLUXDB_INIT_ORG=vulcanguard
+      - DOCKER_INFLUXDB_INIT_BUCKET=firewall_metrics
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=vulcanguard-super-secret-auth-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - monitoring
+
+  # Redis for real-time caching
+  redis:
+    image: redis:7-alpine
+    container_name: vulcanguard-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - monitoring
+
+  # VulcanGuard metrics exporter
+  vulcanguard-exporter:
+    build: ./exporter
+    container_name: vulcanguard-exporter
+    ports:
+      - "8080:8080"
+    environment:
+      - VULCANGUARD_API_URL=http://host.docker.internal:8888
+      - REDIS_URL=redis:6379
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=vulcanguard-super-secret-auth-token
+      - INFLUXDB_ORG=vulcanguard
+      - INFLUXDB_BUCKET=firewall_metrics
+    networks:
+      - monitoring
+    depends_on:
+      - redis
+      - influxdb
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: vulcanguard-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  influxdb_data:
+  redis_data:
+
+networks:
+  monitoring:
+    driver: bridge
