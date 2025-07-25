@@ -219,7 +219,7 @@ identity.AnalyzeIdentity(...)
 ```bash
 cd /home/aditya-sal/Desktop/SystemBackend/VulcanGuard
 go mod tidy
-go build -o vulcanguard-enhanced main_enhanced.go
+go build -o vulcanguard-enhanced main.go
 ```
 
 ### Run with Enhanced Features

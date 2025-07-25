@@ -1,3 +1,5 @@
+** All of the below has been implemented**
+
 Implement behavioral profiling to blacklisted ip addresses and store this "profile"
 into a globally accessible data which can be queried to create a global blaclist state
 

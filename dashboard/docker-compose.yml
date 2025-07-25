@@ -22,25 +22,7 @@ services:
     networks:
       - monitoring
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: vulcanguard-grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=vulcanguard123
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=grafana-clock-panel
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    networks:
-      - monitoring
-    depends_on:
-      - prometheus
-
-  # InfluxDB for time-series geolocation data
+  # InfluxDB for time-series geolocation and detailed analytics data
   influxdb:
     image: influxdb:2.7-alpine
     container_name: vulcanguard-influxdb
@@ -58,34 +40,23 @@ services:
     networks:
       - monitoring
 
-  # Redis for real-time caching
-  redis:
-    image: redis:7-alpine
-    container_name: vulcanguard-redis
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vulcanguard-grafana
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - monitoring
-
-  # VulcanGuard metrics exporter
-  vulcanguard-exporter:
-    build: ./exporter
-    container_name: vulcanguard-exporter
-    ports:
-      - "8080:8080"
+      - "3000:3000"
     environment:
-      - VULCANGUARD_API_URL=http://host.docker.internal:8888
-      - REDIS_URL=redis:6379
-      - INFLUXDB_URL=http://influxdb:8086
-      - INFLUXDB_TOKEN=vulcanguard-super-secret-auth-token
-      - INFLUXDB_ORG=vulcanguard
-      - INFLUXDB_BUCKET=firewall_metrics
+      - GF_SECURITY_ADMIN_PASSWORD=vulcanguard123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - monitoring
     depends_on:
-      - redis
+      - prometheus
       - influxdb
 
   node-exporter:
@@ -107,9 +78,8 @@ services:
 
 volumes:
   prometheus_data:
-  grafana_data:
   influxdb_data:
-  redis_data:
+  grafana_data:
 
 networks:
   monitoring:

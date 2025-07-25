@@ -67,7 +67,7 @@ Pre-configured Prometheus alerts for:
 ## 🔧 Technical Implementation
 
 ### VulcanGuard Integration
-- **Enhanced main_enhanced.go** with new API handlers
+- **Enhanced main.go** with new API handlers
 - **Behavioral profiler integration** for geographic data
 - **Prometheus metrics export** for real-time monitoring
 - **JSON API responses** for dashboard consumption

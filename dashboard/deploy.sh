@@ -19,19 +19,11 @@ echo "📁 Creating required directories..."
 mkdir -p ./data/prometheus
 mkdir -p ./data/grafana
 mkdir -p ./data/influxdb
-mkdir -p ./data/redis
-mkdir -p ./data/elasticsearch
 
 # Set permissions
 echo "🔐 Setting permissions..."
 sudo chown -R 472:472 ./data/grafana  # Grafana user
 sudo chown -R 65534:65534 ./data/prometheus  # Nobody user for Prometheus
-
-# Build custom exporter
-echo "🔨 Building VulcanGuard exporter..."
-cd exporter
-go mod tidy
-cd ..
 
 # Start the dashboard stack
 echo "🐳 Starting Docker containers..."
@@ -43,28 +35,46 @@ sleep 30
 
 # Check service health
 echo "🏥 Checking service health..."
-services=("prometheus:9090" "grafana:3000" "influxdb:8086" "redis:6379" "vulcanguard-exporter:8080")
+if curl -f http://localhost:9090 &> /dev/null; then
+    echo "✅ Prometheus is healthy"
+else
+    echo "⚠️  Prometheus might not be ready yet"
+fi
 
-for service in "${services[@]}"; do
-    IFS=':' read -r name port <<< "$service"
-    if curl -f http://localhost:$port/health &> /dev/null || curl -f http://localhost:$port &> /dev/null; then
-        echo "✅ $name is healthy"
-    else
-        echo "⚠️  $name might not be ready yet"
-    fi
-done
+if curl -f http://localhost:8086/health &> /dev/null; then
+    echo "✅ InfluxDB is healthy"
+else
+    echo "⚠️  InfluxDB might not be ready yet"
+fi
+
+if curl -f http://localhost:3000 &> /dev/null; then
+    echo "✅ Grafana is healthy"
+else
+    echo "⚠️  Grafana might not be ready yet"
+fi
+
+if curl -f http://localhost:9100/metrics &> /dev/null; then
+    echo "✅ Node Exporter is healthy"
+else
+    echo "⚠️  Node Exporter might not be ready yet"
+fi
 
 echo ""
 echo "🎉 VulcanGuard Dashboard deployed successfully!"
 echo ""
-echo "📊 Access your dashboards:"
+echo "📊 Visualization Frontend:"
 echo "   • Grafana: http://localhost:3000 (admin/vulcanguard123)"
-echo "   • Prometheus: http://localhost:9090"
-echo "   • InfluxDB: http://localhost:8086"
 echo ""
-echo "🔧 API Endpoints:"
-echo "   • Metrics: http://localhost:8080/metrics"
-echo "   • Geo Data: http://localhost:8080/api/geo-data"
-echo "   • Health: http://localhost:8080/health"
+echo "🗄️  Data Storage Backends:"
+echo "   • Prometheus: http://localhost:9090 (metrics & time-series)"
+echo "   • InfluxDB: http://localhost:8086 (geolocation & analytics)"
+echo "   • Node Exporter: http://localhost:9100 (system metrics)"
+echo ""
+echo "🔧 Architecture:"
+echo "   • Single visualization layer: Grafana"
+echo "   • Multiple data sources: Prometheus + InfluxDB + Node Exporter"
+echo "   • VulcanGuard feeds application data to Prometheus/InfluxDB"
+echo "   • Node Exporter provides host system metrics"
+echo "   • Grafana combines all sources for comprehensive dashboards"
 echo ""
 echo "📖 For more information, see README.md"

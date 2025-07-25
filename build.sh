@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# VulcanGuard Enhanced Build Script
-echo "🛡️ Building VulcanGuard Enhanced..."
+# VulcanGuard Build Script
+echo "🛡️ Building VulcanGuard..."
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -63,18 +63,18 @@ done
 print_status "Module initialization complete"
 
 # Build the enhanced version
-print_status "Building VulcanGuard Enhanced..."
-if go build -o vulcanguard-enhanced main_enhanced.go; then
+print_status "Building VulcanGuard..."
+if go build -o vulcanguard main.go; then
     print_status "Enhanced version built successfully: vulcanguard-enhanced"
 else
-    print_error "Failed to build enhanced version"
+    print_error "Failed to build VulcanGuard"
     exit 1
 fi
 
 # Build the demo
 print_status "Building demo application..."
-if go build -o vulcanguard-demo demo_enhanced.go; then
-    print_status "Demo application built successfully: vulcanguard-demo"
+if go build -o vg-demo demo.go; then
+    print_status "Demo application built successfully: vg-demo"
 else
     print_warning "Failed to build demo application (non-critical)"
 fi
